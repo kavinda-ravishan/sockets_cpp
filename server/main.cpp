@@ -103,5 +103,6 @@ int main(int args, char** argv)
     closesocket(serverSocket);
     WSACleanup();
 
+    system("pause");
     return 0;
 }

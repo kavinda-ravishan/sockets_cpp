@@ -72,5 +72,6 @@ int main(int args, char** argv)
     closesocket(clientSocket);
     WSACleanup();
 
+    system("pause");
     return 0;
 }
