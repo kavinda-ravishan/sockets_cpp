@@ -104,6 +104,14 @@ SOCKET waitForNewConnection(SOCKET serverSocket)
     return acceptSocket;
 }
 
+void cleanup(SOCKET serverSocket, SOCKET acceptSocket)
+{
+    // cleanup    
+    closesocket(acceptSocket);
+    closesocket(serverSocket);
+    WSACleanup();
+}
+
 int main(int args, char** argv)
 {
     loadDll(2, 2);
@@ -112,11 +120,25 @@ int main(int args, char** argv)
     initListen(serverSocket);
     SOCKET acceptSocket = waitForNewConnection(serverSocket);
 
-    // cleanup    
-    closesocket(acceptSocket);
-    closesocket(serverSocket);
-    WSACleanup();
+    // receiving
+    // S : the descriptor that identifies a connection socket
+    // buff : A pointer to the buffer to receive
+    // len : buff len in bytes
+    // flags : optional set of flags
+    // return : no of bytes sent, SOCKET_ERROR if failed.
+    const int buffLen = 100; 
+    char buffer[buffLen];
+    int byteCount = recv(acceptSocket, buffer, buffLen, 0);
 
+    if(byteCount == SOCKET_ERROR)
+    {
+        std::cout<< "Receive failed : "<< WSAGetLastError() << std::endl;
+        exit(EXIT_FAILURE);
+    }
+
+    std::cout<< "Message received : "<< buffer << std::endl;
+
+    cleanup(serverSocket, acceptSocket);
     system("pause");
     return 0;
 }

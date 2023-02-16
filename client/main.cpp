@@ -58,7 +58,7 @@ void connectSocket(SOCKET clientSocket, const char* ip, u_short port)
     clientService.sin_port = htons(port);
     if(connect(clientSocket, (SOCKADDR*)&clientService, sizeof(clientService)) == SOCKET_ERROR)
     {
-        std::cout<< "client connect() faild to connect.\n";
+        std::cout<< "client faild to connect.\n";
         closesocket(clientSocket);
         WSACleanup();
         exit(EXIT_FAILURE); 
@@ -66,16 +66,44 @@ void connectSocket(SOCKET clientSocket, const char* ip, u_short port)
     std::cerr<< "Connected.\n";
 }
 
+void cleanup(SOCKET clientSocket)
+{
+    // cleanup    
+    closesocket(clientSocket);
+    WSACleanup();
+}
+
 int main(int args, char** argv)
 {
     loadDll(2, 2);
     SOCKET clientSocket = createTcpSocket();
     connectSocket(clientSocket, "127.0.0.1", 55555);
-    
-    // cleanup    
-    closesocket(clientSocket);
-    WSACleanup();
 
+    // send
+    // buf : pointer to buffer
+    // len : the length in bytes of buffer
+    // flags : Optional set of flags (No routing etc).
+    // return : no of bytes sent, SOCKET_ERROR if failed.
+    
+    // const char* buffer = "message from client.\n";
+    // const int buffLen = strlen(buffer) + 1; 
+
+    const int buffLen = 100; 
+    char buffer[buffLen];
+    strcpy_s(buffer, "message from client.\n");
+    
+    int byteCount = send(clientSocket, buffer, buffLen, 0);
+
+    if(byteCount == SOCKET_ERROR)
+    {
+        std::cout<< "Send failed : "<< WSAGetLastError() << std::endl;
+        exit(EXIT_FAILURE);
+    }
+
+    std::cout<< "Message send : "<< buffer << std::endl;
+
+
+    cleanup(clientSocket);
     system("pause");
     return 0;
 }
