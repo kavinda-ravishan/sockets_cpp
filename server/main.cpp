@@ -90,7 +90,9 @@ SOCKET waitForNewConnection(SOCKET serverSocket)
     // addr : Optional struct containing the client address information.
     // Addrlen : Optional size of the address struct (if included)
     SOCKET acceptSocket;
-    acceptSocket = accept(serverSocket, NULL, NULL);
+    sockaddr_in service;
+    int service_len = sizeof(service);
+    acceptSocket = accept(serverSocket, (SOCKADDR*)&service, &service_len);
     if(acceptSocket == INVALID_SOCKET)
     {
         std::cerr<< "accept faild : "<< WSAGetLastError() << std::endl;
@@ -99,8 +101,7 @@ SOCKET waitForNewConnection(SOCKET serverSocket)
         exit(EXIT_FAILURE);
     }
 
-    std::cout<< "client connected.\n";
-
+    std::cout << "Connection accepted from " << inet_ntoa(service.sin_addr) << ":" << ntohs(service.sin_port) << "\n";
     return acceptSocket;
 }
 
