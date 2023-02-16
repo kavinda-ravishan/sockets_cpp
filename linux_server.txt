@@ -1,0 +1,55 @@
+#include <arpa/inet.h>
+#include <netinet/in.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <cstring>
+#include <iostream>
+
+int main() {
+    int serverSocket, clientSocket, bindStatus, listenStatus;
+    struct sockaddr_in serverAddress, clientAddress;
+    socklen_t clientAddressLength = sizeof(clientAddress);
+
+    serverSocket = socket(AF_INET, SOCK_STREAM, 0);
+
+    if (serverSocket == -1) {
+        std::cout << "Error creating socket\n";
+        return 1;
+    }
+
+    std::memset(&serverAddress, 0, sizeof(serverAddress));
+    serverAddress.sin_family = AF_INET;
+    serverAddress.sin_addr.s_addr = INADDR_ANY;
+    serverAddress.sin_port = htons(55555);
+
+    bindStatus = bind(serverSocket, (struct sockaddr *)&serverAddress, sizeof(serverAddress));
+
+    if (bindStatus == -1) {
+        std::cout << "Error binding socket\n";
+        return 1;
+    }
+
+    listenStatus = listen(serverSocket, 1);
+
+    if (listenStatus == -1) {
+        std::cout << "Error listening on socket\n";
+        return 1;
+    }
+
+    std::cout << "Listening for incoming connections...\n";
+
+    clientSocket = accept(serverSocket, (struct sockaddr *)&clientAddress, &clientAddressLength);
+
+    if (clientSocket == -1) {
+        std::cout << "Error accepting connection\n";
+        return 1;
+    }
+
+    std::cout << "Connection accepted from " << inet_ntoa(clientAddress.sin_addr) << ":" << ntohs(clientAddress.sin_port) << "\n";
+
+    close(clientSocket);
+    close(serverSocket);
+
+    return 0;
+}

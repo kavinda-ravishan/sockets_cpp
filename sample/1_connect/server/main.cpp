@@ -5,46 +5,44 @@
 
 #pragma comment(lib,"Ws2_32")
 
-void loadDll(int majorVersion, int minorVersion)
+int main(int args, char** argv)
 {
+    // load dll
     WSADATA wsaData;
     int wsaerr;
-    WORD wVersionRequested = MAKEWORD(majorVersion, minorVersion); // version 2.2
+    WORD wVersionRequested = MAKEWORD(2, 2); // version 2.2
     wsaerr = WSAStartup(wVersionRequested, &wsaData);
 
     if(wsaerr != 0)
     {
-        std::cerr<< "The Winsock dll not found!\n";
-        exit(EXIT_FAILURE);
+        std::cout<< "The Winsock dll not found!\n";
+        return 0;
+    }
+    else
+    {
+        std::cout<< "The Winsock dll found!\n";
+        std::cout<< "The status : "<< wsaData.szSystemStatus << std::endl;
     }
 
-    std::cout<< "The Winsock dll found, status : "<< wsaData.szSystemStatus << std::endl;
-}
-
-SOCKET createTcpSocket()
-{
     // create socket
     // af : The address family specification (AF_INET for UDP or TCP)
     // type : Type specification for the new socket 
     // (SOCK_STREAM for TCP and SOCK_DGRAM for UDP)
     // protocol : the protocol to be used (IPPROTO_TCP for TCP)
-    SOCKET newSocket = INVALID_SOCKET;
-    newSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    SOCKET serverSocket = INVALID_SOCKET;
+    serverSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
-    if(newSocket == INVALID_SOCKET)
+    if(serverSocket == INVALID_SOCKET)
     {
-        std::cerr<< "Error at socket(): "<< WSAGetLastError() << std::endl;
+        std::cout<< "Error at socket(): "<< WSAGetLastError() << std::endl;
         WSACleanup();
-        exit(EXIT_FAILURE); 
+        return 0; 
     }
-    
-    std::cout<< "Socket created.\n";
+    else
+    {
+        std::cout<< "socket() is OK.\n";
+    }
 
-    return newSocket;
-}
-
-void bindSocket(SOCKET serverSocket, const char* ip, u_short port)
-{
     // bind the socket
     // SOCKADDR_IN struct
     // sin_family : Address family (must be AF_INET)
@@ -54,36 +52,36 @@ void bindSocket(SOCKET serverSocket, const char* ip, u_short port)
     // the htons function returns the value in TCP/IP network byte order.
     sockaddr_in service;
     service.sin_family = AF_INET;
-    service.sin_addr.s_addr = inet_addr(ip);
+    InetPton(AF_INET, _T("127.0.0.1"), &service.sin_addr.s_addr);
+    u_short port = 55555;
     service.sin_port = htons(port);
     if(bind(serverSocket, (SOCKADDR*)&service, sizeof(service)) == SOCKET_ERROR)
     {
-        std::cerr<< "bind() faild : " << WSAGetLastError() << std::endl;
+        std::cout<< "bind() faild : " << WSAGetLastError() << std::endl;
         closesocket(serverSocket);
         WSACleanup();
-        exit(EXIT_FAILURE);
+        return 0;
+    }
+    else
+    {
+        std::cout<< "bind() is OK.\n";
     }
     
-    std::cout<< "Socket bind successful, IP : "<<ip<<", PORT : "<<port<<std::endl;
-}
-
-void initListen(SOCKET serverSocket)
-{
     // listn on the socket
     // s : Descriptor identifying a bound, unconnected socket.
     // backlog : the maximum number of connections allowed  (also OS dependant)
     if(listen(serverSocket, 1) == SOCKET_ERROR)
     {
-        std::cerr<< "listen() : Error listening on socket "<< WSAGetLastError() << std::endl;
+        std::cout<< "listen() : Error listening on socket "<< WSAGetLastError() << std::endl;
         closesocket(serverSocket);
         WSACleanup();
-        exit(EXIT_FAILURE);
+        return 0;
     }
-    std::cout << "Waiting for connections...\n";
-}
+    else
+    {
+        std::cout << "listen() is OK, Waiting for connections...\n";
+    }
 
-SOCKET waitForNewConnection(SOCKET serverSocket)
-{
     // accept
     // This is a blocking function
     // s : Descriptor that identifies a socket that has been placed in a listening with the listen() function.
@@ -93,27 +91,15 @@ SOCKET waitForNewConnection(SOCKET serverSocket)
     acceptSocket = accept(serverSocket, NULL, NULL);
     if(acceptSocket == INVALID_SOCKET)
     {
-        std::cerr<< "accept faild : "<< WSAGetLastError() << std::endl;
+        std::cout<< "accept faild : "<< WSAGetLastError() << std::endl;
         closesocket(serverSocket);
         WSACleanup();
-        exit(EXIT_FAILURE);
+        return 0;
     }
 
     std::cout<< "client connected.\n";
 
-    return acceptSocket;
-}
-
-int main(int args, char** argv)
-{
-    loadDll(2, 2);
-    SOCKET serverSocket = createTcpSocket();
-    bindSocket(serverSocket, "127.0.0.1", 55555);
-    initListen(serverSocket);
-    SOCKET acceptSocket = waitForNewConnection(serverSocket);
-
     // cleanup    
-    closesocket(acceptSocket);
     closesocket(serverSocket);
     WSACleanup();
 

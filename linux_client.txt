@@ -1,0 +1,33 @@
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+int main(int argc, char *argv[]) {
+    int clientSocket = socket(AF_INET, SOCK_STREAM, 0);
+    if (clientSocket == -1) {
+        printf("Could not create socket\n");
+        return 1;
+    }
+
+    struct sockaddr_in clientService;
+    memset(&clientService, 0, sizeof(clientService));
+    clientService.sin_family = AF_INET;
+    clientService.sin_addr.s_addr = inet_addr("127.0.0.1");
+    unsigned short port = 55555;
+    clientService.sin_port = htons(port);
+
+    if (connect(clientSocket, (struct sockaddr *)&clientService, sizeof(clientService)) < 0) {
+        printf("client connect() failed to connect.\n");
+        return 1;
+    }
+    else {
+        printf("client connect() is OK, connected.\n");
+    }
+
+    close(clientSocket);
+
+    return 0;
+}

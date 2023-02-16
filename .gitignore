@@ -4,4 +4,4 @@
 *.ilk
 *.obj
 *.o
-*/.vscode
+**/.vscode
