@@ -53,6 +53,7 @@ void connectSocket(SOCKET clientSocket, const char* ip, u_short port)
     // addrlen : size in bytes of addr struct
     // connect will wait 75 seconds for server to respond
     sockaddr_in clientService;
+    std::memset(&clientService, 0, sizeof(clientService));
     clientService.sin_family = AF_INET;
     clientService.sin_addr.s_addr = inet_addr(ip);
     clientService.sin_port = htons(port);
@@ -90,7 +91,7 @@ int main(int args, char** argv)
 
     const int buffLen = 100; 
     char buffer[buffLen];
-    strcpy_s(buffer, "message from client.\n");
+    strcpy_s(buffer, "message from client.");
     
     int byteCount = send(clientSocket, buffer, buffLen, 0);
 

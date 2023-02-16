@@ -53,6 +53,7 @@ void bindSocket(SOCKET serverSocket, const char* ip, u_short port)
     // sin_zero : Padding to make struct the same size as SOCKADDR.
     // the htons function returns the value in TCP/IP network byte order.
     sockaddr_in service;
+    std::memset(&service, 0, sizeof(service));
     service.sin_family = AF_INET;
     service.sin_addr.s_addr = inet_addr(ip);
     service.sin_port = htons(port);
@@ -91,6 +92,7 @@ SOCKET waitForNewConnection(SOCKET serverSocket)
     // Addrlen : Optional size of the address struct (if included)
     SOCKET acceptSocket;
     sockaddr_in service;
+    std::memset(&service, 0, sizeof(service));
     int service_len = sizeof(service);
     acceptSocket = accept(serverSocket, (SOCKADDR*)&service, &service_len);
     if(acceptSocket == INVALID_SOCKET)
