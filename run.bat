@@ -1,4 +1,9 @@
-cd server
-START main.exe
+cd ./server
+cl.exe ./main_win.cpp 
 cd ../client
-START main.exe
+cl.exe ./main_win.cpp 
+
+cd ../server
+START ./main_win.exe
+cd ../client
+START ./main_win.exe
