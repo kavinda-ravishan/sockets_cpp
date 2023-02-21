@@ -8,7 +8,7 @@
 
 int createTcpSocket()
 {
-    int serverSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    int serverSocket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 
     if (serverSocket == -1) {
         std::cerr << "Error creating socket\n";
@@ -34,36 +34,8 @@ void bindSocket(int serverSocket, const char* ip, uint16_t port)
     }
 }
 
-void initListen(int serverSocket)
+void cleanup(int serverSocket)
 {
-    int listenStatus = listen(serverSocket, 1);
-
-    if (listenStatus == -1) {
-        std::cerr << "Error listening on socket\n";
-        exit(EXIT_FAILURE);
-    }
-    
-    std::cout << "Listening for incoming connections...\n";
-}
-
-int waitForNewConnection(int serverSocket)
-{
-    sockaddr_in clientAddress;
-    socklen_t clientAddressLength = sizeof(clientAddress);
-    int clientSocket = accept(serverSocket, (struct sockaddr *)&clientAddress, &clientAddressLength);
-
-    if (clientSocket == -1) {
-        std::cerr << "Error accepting connection\n";
-        return 1;
-    }
-
-    std::cout << "Connection accepted from " << inet_ntoa(clientAddress.sin_addr) << ":" << ntohs(clientAddress.sin_port) << "\n";
-    return clientSocket;
-}
-
-void cleanup(int serverSocket, int acceptSocket)
-{
-    close(acceptSocket);
     close(serverSocket);
 }
 
@@ -71,12 +43,18 @@ int main() {
     
     int serverSocket = createTcpSocket();
     bindSocket(serverSocket, "127.0.0.1", 55555);
-    initListen(serverSocket);
-    int acceptSocket = waitForNewConnection(serverSocket);
 
     const int buffLen = 100; 
     char buffer[buffLen];
-    int byteCount = recv(acceptSocket, buffer, buffLen, 0);
+
+    sockaddr_in clientAddress;
+    int clientAddressLen = sizeof(clientAddress);
+    std::memset(&clientAddress, 0, sizeof(clientAddress));
+    clientAddress.sin_family = AF_INET;
+    clientAddress.sin_addr.s_addr = inet_addr("127.0.0.1");
+    clientAddress.sin_port = htons(55555);
+
+    int byteCount = recvfrom(serverSocket, buffer, buffLen, 0, (sockaddr *)&clientAddress, (socklen_t*)&clientAddressLen);
 
     if(byteCount == -1)
     {
@@ -86,7 +64,7 @@ int main() {
 
     std::cout<< "Message received : "<< buffer << std::endl;
 
-    cleanup(serverSocket, acceptSocket);
+    cleanup(serverSocket);
 
     return 0;
 }
