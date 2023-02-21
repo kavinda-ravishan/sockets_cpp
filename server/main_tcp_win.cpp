@@ -115,6 +115,13 @@ void cleanup(SOCKET serverSocket, SOCKET acceptSocket)
     WSACleanup();
 }
 
+struct Vec
+{
+    float x = 1;
+    float y = 2;
+    float z = 3;
+};
+
 int main(int args, char** argv)
 {
     loadDll(2, 2);
@@ -129,9 +136,12 @@ int main(int args, char** argv)
     // len : buff len in bytes
     // flags : optional set of flags
     // return : no of bytes sent, SOCKET_ERROR if failed.
-    const int buffLen = 100; 
-    char buffer[buffLen];
-    int byteCount = recv(acceptSocket, buffer, buffLen, 0);
+    // const int buffLen = 100; 
+    // char buffer[buffLen];
+
+    const int buffLen = sizeof(Vec); 
+    Vec* buffer = (Vec*)malloc(sizeof(buffLen));
+    int byteCount = recv(acceptSocket, (char*)buffer, buffLen, 0);
 
     if(byteCount == SOCKET_ERROR)
     {
@@ -139,7 +149,8 @@ int main(int args, char** argv)
         exit(EXIT_FAILURE);
     }
 
-    std::cout<< "Message received : "<< buffer << std::endl;
+
+    std::cout<< "Message received : "<< buffer->x << ", "<< buffer->y << ", "<< buffer->z << std::endl;
 
     cleanup(serverSocket, acceptSocket);
     system("pause");

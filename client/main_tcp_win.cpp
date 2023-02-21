@@ -74,6 +74,13 @@ void cleanup(SOCKET clientSocket)
     WSACleanup();
 }
 
+struct Vec
+{
+    float x = 1.2f;
+    float y = 2.2f;
+    float z = 3.4f;
+};
+
 int main(int args, char** argv)
 {
     loadDll(2, 2);
@@ -89,9 +96,13 @@ int main(int args, char** argv)
     // const char* buffer = "message from client.\n";
     // const int buffLen = strlen(buffer) + 1; 
 
-    const int buffLen = 100; 
-    char buffer[buffLen];
-    strcpy_s(buffer, "message from client.");
+    // const int buffLen = 100; 
+    // char buffer[buffLen];
+    // strcpy_s(buffer, "message from client.");
+
+    Vec vec;
+    int buffLen = sizeof(Vec);
+    char* buffer = (char*)&vec;
     
     int byteCount = send(clientSocket, buffer, buffLen, 0);
 
@@ -101,7 +112,7 @@ int main(int args, char** argv)
         exit(EXIT_FAILURE);
     }
 
-    std::cout<< "Message send : "<< buffer << std::endl;
+    std::cout<< "Message send : "<< vec.x << ", "<< vec.y << ", "<< vec.z << std::endl;
 
 
     cleanup(clientSocket);
